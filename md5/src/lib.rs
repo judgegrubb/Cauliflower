@@ -2,13 +2,13 @@
 pub struct Md5;
 
 struct Md5Internal {
-    pub A: u32,
-    pub B: u32,
-    pub C: u32,
-    pub D: u32,
+    pub a: u32,
+    pub b: u32,
+    pub c: u32,
+    pub d: u32,
 }
 
-const s: [u32; 64] = [ 7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,
+const S: [u32; 64] = [ 7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,
                        5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,
                        4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,
                        6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21 ];
@@ -84,53 +84,50 @@ impl Md5 {
     /// for each 512 bit chunk
     /// call our process function 
     fn hash_padded(message: Vec<u32>) -> Vec<u8> {
-        let mut md5Init = Md5Internal {
-            A: 0x67452301,
-            B: 0xefcdab89,
-            C: 0x98badcfe,
-            D: 0x10325476,
+        let mut md5_init = Md5Internal {
+            a: 0x67452301,
+            b: 0xefcdab89,
+            c: 0x98badcfe,
+            d: 0x10325476,
         };
 
         let mut iter = message.chunks_exact(16);
 
         while let Some(chunk) = iter.next() {
-            Self::process(&mut md5Init, chunk);
+            Self::process(&mut md5_init, chunk);
         }
 
-        let mut hash_bytes = md5Init.A.to_le_bytes().to_vec();
-        hash_bytes.extend(md5Init.B.to_le_bytes());
-        hash_bytes.extend(md5Init.C.to_le_bytes());
-        hash_bytes.extend(md5Init.D.to_le_bytes());
+        let mut hash_bytes = md5_init.a.to_le_bytes().to_vec();
+        hash_bytes.extend(md5_init.b.to_le_bytes());
+        hash_bytes.extend(md5_init.c.to_le_bytes());
+        hash_bytes.extend(md5_init.d.to_le_bytes());
         hash_bytes
     }
   
     fn process(state: &mut Md5Internal, chunk: &[u32]) {
-        let mut A = state.A;
-        let mut B = state.B;
-        let mut C = state.C;
-        let mut D = state.D;
-
-        println!("A={:x}, B={:x}, C={:x}, D={:x}", A, B, C, D);
+        let mut a = state.a;
+        let mut b = state.b;
+        let mut c = state.c;
+        let mut d = state.d;
 
         for i in 0..64 {
-            let (mut F, g) = match i {
-                0 ..=15 => ( (B & C) | ((!B) & D),    i             ),
-                16..=31 => ( (D & B) | ((!D) & C), (5*i + 1) % 16 ),
-                32..=47 => ( B ^ C ^ D,            (3*i + 5) % 16 ),
-                48..=63 => ( C ^ (B | (!D)),       (7*i)     % 16 ),
+            let (mut f, g) = match i {
+                0 ..=15 => ( (b & c) | ((!b) & d),    i             ),
+                16..=31 => ( (d & b) | ((!d) & c), (5*i + 1) % 16 ),
+                32..=47 => ( b ^ c ^ d,            (3*i + 5) % 16 ),
+                48..=63 => ( c ^ (b | (!d)),       (7*i)     % 16 ),
                    _    => panic!("should never reach here"),
             };
-            F = F.wrapping_add(A).wrapping_add(K[i]).wrapping_add(chunk[g]);
-            A = D;
-            D = C;
-            C = B;
-            B = B.wrapping_add(F.rotate_left(s[i]));
-            println!("A={:x}, B={:x}, C={:x}, D={:x}", A, B, C, D); 
+            f = f.wrapping_add(a).wrapping_add(K[i]).wrapping_add(chunk[g]);
+            a = d;
+            d = c;
+            c = b;
+            b = b.wrapping_add(f.rotate_left(S[i]));
         }
-        state.A = state.A.wrapping_add(A);
-        state.B = state.B.wrapping_add(B);
-        state.C = state.C.wrapping_add(C);
-        state.D = state.D.wrapping_add(D);
+        state.a = state.a.wrapping_add(a);
+        state.b = state.b.wrapping_add(b);
+        state.c = state.c.wrapping_add(c);
+        state.d = state.d.wrapping_add(d);
     }
 }
 
