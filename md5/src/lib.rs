@@ -149,4 +149,20 @@ mod tests {
         assert_eq!("e4d909c290d0fb1ca068ffaddf22cbd0",
                    hash.hash_string("The quick brown fox jumps over the lazy dog."));
     }
+
+    #[test]
+    fn test_md5_further() {
+        let hash = Md5::new();
+        assert_eq!(hash.hash_string("frog"),
+                   "938c2cc0dcc05f2b68c4287040cfcf71");
+        assert_eq!(hash.hash_string("a"),
+                   "0cc175b9c0f1b6a831c399e269772661");
+    }
+
+    #[test]
+    fn test_md5_large() {
+        let hash = Md5::new();
+        assert_eq!(hash.hash_string("12345678901234567890123456789012345678901234567890123456789012345678901234567890"),
+                   "57edf4a22be3c955ac49da2e2107b67a");
+    }
 }
